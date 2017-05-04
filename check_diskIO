@@ -1,0 +1,80 @@
+#!/bin/bash
+
+function usage() {
+    local prog="${1:-check_diskIO}"
+    echo "Usage: $prog -h";
+    echo "      Print this help and exit"
+    echo "Usage: $prog -d <device> -w <%ratio> -c <%ratio>";
+    echo "       -w <%>         the warning threshold ratio current/max in %"
+    echo "       -c <%>         the critical threshold ratio current/max in %"
+}
+
+
+while getopts "d:w:c:h" OPT;
+do
+        case $OPT in
+                d)
+                        DEVICE=$OPTARG;;
+                w)
+                        WARNING=$OPTARG;;
+                c)
+                        CRITICAL=$OPTARG;;
+                h)
+                        usage $0
+                        exit 3;;
+        esac
+done
+
+if [ -z "$DEVICE" -a -z "$WARNING" -a -z "$CRITICAL" ] ; then
+        echo "Syntax error !!,Please refer to the help below"
+        echo " "
+        usage $0
+        exit 3
+fi
+
+if [ -n "$DEVICE" -a -z "$WARNING" ] ; then
+        echo "Syntax error !!,Please refer to the help below"
+        echo " "
+        usage $0
+        exit 3
+fi
+
+if [ -n "$DEVICE" -a -z "$CRITICAL" ] ; then
+        echo "Syntax error !!,Please refer to the help below"
+        echo " "
+        usage $0
+        exit 3
+fi
+
+if [ -z "$DEVICE" -a -n "$WARNING" ] ; then
+        echo "Syntax error !!,Please refer to the help below"
+        echo " "
+        usage $0
+        exit 3
+fi
+
+if [ -z "$DEVICE" -a -n "$CRITICAL" ] ; then
+        echo "Syntax error !!,Please refer to the help below"
+        echo " "
+        usage $0
+        exit 3
+fi
+
+IOSTAT=`which iostat`
+AWK=`which awk`
+DISK_UTIL=`$IOSTAT -k -x -d $DEVICE | $AWK 'NR!=1 && NF  && NR!=3 {print ($12)}'`
+DISK_red=`$IOSTAT -k -x -d $DEVICE | $AWK 'NR!=1 && NF  && NR!=3 {print ($6)}'`
+DISK_write=`$IOSTAT -k -x -d $DEVICE | $AWK 'NR!=1 && NF  && NR!=3 {print ($7)}'`
+DISK_IO_MESSAGE=`$IOSTAT -k -x -d $DEVICE | awk 'NR!=1 && NF  && NR!=3 {print "device:" $1 ", " $6 " readKB/s, " $7 " writeKB/s, diskIO use "$12"%"}'`
+
+
+if [ `expr $DISK_UTIL \>= $CRITICAL` -eq 1 ]; then
+        echo "CRITICAL: $DISK_IO_MESSAGE"
+        exit 2
+elif [ `expr $DISK_UTIL \>= $WARNING` -eq 1 ]; then
+        echo "WARNING: $DISK_IO_MESSAGE"
+        exit 1
+else
+        echo "OK: $DISK_IO_MESSAGE"
+        exit 0
+fi

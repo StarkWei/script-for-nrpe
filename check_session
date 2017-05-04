@@ -1,0 +1,78 @@
+#!/bin/bash
+
+function usage() {
+    local prog="${1:-check_session}"
+    echo "Usage: $prog -h";
+    echo "      Print this help and exit"
+    echo "Usage: $prog -s <service> -p <port> -w <%ratio> -c <%ratio>";
+    echo "       -w <%>         the warning threshold ratio current/max in %"
+    echo "       -c <%>         the critical threshold ratio current/max in %"
+}
+
+
+while getopts "s:p:w:c:h" OPT;
+do
+	case $OPT in
+		s) 
+			SERVICE=$OPTARG;;
+		p) 
+			PORT=$OPTARG;;	
+		w) 
+			WARNING=$OPTARG;;
+		c) 
+			CRITICAL=$OPTARG;;
+		h) 
+			usage $0
+		     	exit 3;;
+	esac
+done
+
+if [ -z "$SERVICE" -a -z "$PORT" -a -z "$WARNING" -a -z "$CRITICAL" ] ; then
+    	echo "Syntax error !!,Please refer to the help below"
+    	echo " "
+    	usage $0
+    	exit 3
+fi
+
+if [ -n "$SERVICE" -a -z "$WARNING" ] ; then
+    	echo "Syntax error !!,Please refer to the help below"
+    	echo " "
+    	usage $0
+    	exit 3
+fi
+
+if [ -n "$SERVICE" -a -z "$CRITICAL" ] ; then
+    	echo "Syntax error !!,Please refer to the help below"
+	echo " "
+    	usage $0
+    	exit 3
+fi
+
+if [ -z "$SERVICE" -a -n "$WARNING" ] ; then
+    	echo "Syntax error !!,Please refer to the help below"
+	echo " "
+    	usage $0
+    	exit 3
+fi
+
+if [ -z "$SERVICE" -a -n "$CRITICAL" ] ; then
+    	echo "Syntax error !!,Please refer to the help below"
+	echo " "
+    	usage $0
+   	exit 3
+fi
+
+SESSION=`netstat -nap | grep $SERVICE | grep ESTABLISHED |grep :$PORT |wc -l`
+SESSION_MESSAGE="$SERVICE total session is $SESSION"
+
+if [ $SESSION -ge $CRITICAL ]; then
+        echo "CRITICAL: $SESSION_MESSAGE"
+        exit 2
+elif [ $SESSION -ge $WARNING ]; then
+        echo "WARNING: $SESSION_MESSAGE"
+        exit 1
+else 
+	echo "OK: $SESSION_MESSAGE"
+	exit 0
+fi
+

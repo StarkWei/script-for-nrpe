@@ -1,0 +1,76 @@
+#!/bin/bash
+
+function usage() {
+    local prog="${1:-check_diskInodes}"
+    echo "Usage: $prog -h";
+    echo "      Print this help and exit"
+    echo "Usage: $prog -d <device> -w <%ratio> -c <%ratio>";
+    echo "       -w <%>         the warning threshold ratio current/max in %"
+    echo "       -c <%>         the critical threshold ratio current/max in %"
+}
+
+
+while getopts "d:w:c:h" OPT;
+do
+	case $OPT in
+		d) 
+			DEVICE=$OPTARG;;
+		w) 
+			WARNING=$OPTARG;;
+		c) 
+			CRITICAL=$OPTARG;;
+		h) 
+			usage $0
+		     	exit 3;;
+	esac
+done
+
+if [ -z "$DEVICE" -a -z "$WARNING" -a -z "$CRITICAL" ] ; then
+    	echo "Syntax error !!,Please refer to the help below"
+    	echo " "
+    	usage $0
+    	exit 3
+fi
+
+if [ -n "$DEVICE" -a -z "$WARNING" ] ; then
+    	echo "Syntax error !!,Please refer to the help below"
+    	echo " "
+    	usage $0
+    	exit 3
+fi
+
+if [ -n "$DEVICE" -a -z "$CRITICAL" ] ; then
+    	echo "Syntax error !!,Please refer to the help below"
+	echo " "
+    	usage $0
+    	exit 3
+fi
+
+if [ -z "$DEVICE" -a -n "$WARNING" ] ; then
+    	echo "Syntax error !!,Please refer to the help below"
+	echo " "
+    	usage $0
+    	exit 3
+fi
+
+if [ -z "$DEVICE" -a -n "$CRITICAL" ] ; then
+    	echo "Syntax error !!,Please refer to the help below"
+	echo " "
+    	usage $0
+   	exit 3
+fi
+
+DISK_USEINDOES=`df -i $DEVICE | awk 'NR!=1 {print int($5)}'`
+DISK_INDOES_MESSAGE=`df -i $DEVICE | awk 'NR!=1 {print "path: " $6 " Useage persent:" $5 " Free indes is "$4}'`
+
+if [ $DISK_USEINDOES -ge $CRITICAL ]; then
+        echo "CRITICAL: $DISK_INDOES_MESSAGE"
+        exit 2
+elif [ $DISK_USEINDOES -ge $WARNING ]; then
+        echo "WARNING: $DISK_INDOES_MESSAGE"
+        exit 1
+else 
+	echo "OK: $DISK_INDOES_MESSAGE"
+	exit 0
+fi
+
