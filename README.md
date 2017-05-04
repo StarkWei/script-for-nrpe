@@ -13,7 +13,7 @@
     diskInodes -d / -w 50 -c 60
 ```
 ```sh
-  check_networkstat：監控Linux主機上網路狀態數量多寡，範例如下：
+  check_networkstat：監控Linux主機上網路狀態數，範例如下：
     check_networkstat -s CLOSE_WAIT -w 500 -c 550
 ```
 ```sh
