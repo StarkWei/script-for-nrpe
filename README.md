@@ -1,1 +1,1 @@
-# script
+# script for nrpe
