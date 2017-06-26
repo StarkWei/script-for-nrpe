@@ -17,10 +17,11 @@
     check_networkstat -s CLOSE_WAIT -w 500 -c 550
 ```
 ```sh
-  check_session：監控Linux主機上service的seesion數，範例如下：
-    check_session -s nginx -p 80 -w 500 -c 550
-```
-```sh
   check_servicestatus：監控Linux主機上service的狀態，範例如下：
     check_servicestatus -s xl2tpd -t running
 ```
+```sh
+  check_session：監控Linux主機上service的seesion數，範例如下：
+    check_session -s nginx -p 80 -w 500 -c 550
+```
+
