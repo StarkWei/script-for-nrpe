@@ -1,0 +1,57 @@
+#!/bin/bash
+
+function usage() {
+    local prog="${1:-check_servicestatus}"
+    echo "Usage: $prog -h";
+    echo "      Print this help and exit"
+    echo "Usage: $prog -s <service> -t <status>";
+    echo "	 -s  <String>	      the service name"
+    echo "	 -t  <String>	      the service status"
+}
+
+
+while getopts "s:t:h" OPT;
+do
+	case $OPT in
+		s) 
+			SERVICE=$OPTARG;;
+		t) 
+			STATUS=$OPTARG;;
+		h) 
+			usage $0
+		     	exit 3;;
+	esac
+done
+
+if [ -z "$SERVICE" -a -z "$STATUS" ] ; then
+    	echo "Syntax error !!,Please refer to the help below"
+    	echo " "
+    	usage $0
+    	exit 3
+fi
+
+if [ -z "$SERVICE" -a -n "$STATUS" ] ; then
+    	echo "Syntax error !!,Please refer to the help below"
+	echo " "
+    	usage $0
+    	exit 3
+fi
+
+if [ -n "$SERVICE" -a -z "$STATUS" ] ; then
+        echo "Syntax error !!,Please refer to the help below"
+        echo " "
+        usage $0
+        exit 3
+fi
+
+SERVICE_STATUS=`/etc/init.d/$SERVICE status | awk '{gsub(/\.../,"",$5);print $5}'`
+SERVICE_MESSAGE=`/etc/init.d/$SERVICE status`
+
+if [ $SERVICE_STATUS = $STATUS ]; then
+        echo "OK: $SERVICE_MESSAGE"
+        exit 0
+else
+        echo "CRITICAL: $SERVICE is fail!!"
+        exit 2
+fi
+
